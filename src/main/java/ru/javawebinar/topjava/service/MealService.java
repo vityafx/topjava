@@ -9,7 +9,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 public class MealService {
@@ -23,12 +22,14 @@ public class MealService {
 
     public Meal get(int id, int userId){
         Meal meal = repository.get(id, userId);
-        //ValidationUtil.checkCurrentUser(meal, userId);
         return ValidationUtil.checkNotFoundWithId(meal, id);
     }
 
     public Meal create(Meal meal, int userId){
-        //ValidationUtil.checkCurrentUser(meal, userId);
+        return repository.save(meal, userId);
+    }
+
+    public Meal update(Meal meal, int userId){
         return repository.save(meal, userId);
     }
 
@@ -37,14 +38,13 @@ public class MealService {
     }
 
     public Collection<Meal> getAll(int userId){
-        return repository.getAll(userId);
-//        ArrayList<Meal> collect = collection.stream()
-//                .filter(meal -> meal.getUserId() == userId)
-//                .collect(Collectors.toCollection(ArrayList::new));
-//        if(collect.isEmpty()){
-//            throw new NotFoundException("No meals for this user");
-//        }
-//        return collect;
+        Collection<Meal> collect = repository.getAll(userId);
+        if(collect.isEmpty()){
+            throw new NotFoundException("No meals for this user");
+        }
+        return collect;
     }
+
+
 
 }

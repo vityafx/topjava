@@ -58,14 +58,10 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Collection<Meal> getAll(int userId) {
-        ArrayList<Meal> collect = repository.values().stream()
+        return repository.values().stream()
                 .filter(meal -> meal.getUserId() == userId)
                 .sorted(Comparator.comparing(Meal::getDate).reversed())
                 .collect(Collectors.toCollection(ArrayList::new));
-        if(collect.isEmpty()){
-            throw new NotFoundException("No meals for this user");
-        }
-        return collect;
     }
 }
 
