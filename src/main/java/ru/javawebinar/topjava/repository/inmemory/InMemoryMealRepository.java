@@ -5,7 +5,6 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.MealsUtil;
 import ru.javawebinar.topjava.util.ValidationUtil;
-import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,13 +25,7 @@ public class InMemoryMealRepository implements MealRepository {
         MealsUtil.meals.forEach(this::save);
     }
 
-    private void save(Meal meal){
-        repository.put(meal.getId(), meal);
-    }
-
-    @Override
-    public Meal save(Meal meal, int userId) {
-        ValidationUtil.checkCurrentUser(meal, userId);
+    private Meal save(Meal meal){
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
             repository.put(meal.getId(), meal);
@@ -40,6 +33,12 @@ public class InMemoryMealRepository implements MealRepository {
         }
         // handle case: update, but not present in storage
         return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
+    }
+
+    @Override
+    public Meal save(Meal meal, int userId) {
+        ValidationUtil.checkCurrentUser(meal, userId);
+        return save(meal);
     }
 
     @Override
