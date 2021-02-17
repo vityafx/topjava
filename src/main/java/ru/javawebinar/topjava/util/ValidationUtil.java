@@ -43,7 +43,7 @@ public class ValidationUtil {
     }
 
     public static void checkCurrentUser(Meal meal, int userId){
-        if (meal.getUserId() != userId){
+        if (meal == null || meal.getUserId() != userId){
             throw new NotFoundException("Wrong request");
         }
     }

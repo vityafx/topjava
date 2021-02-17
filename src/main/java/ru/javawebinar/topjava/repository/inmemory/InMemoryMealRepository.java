@@ -4,6 +4,8 @@ import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.MealsUtil;
+import ru.javawebinar.topjava.util.ValidationUtil;
+import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,8 +26,13 @@ public class InMemoryMealRepository implements MealRepository {
         MealsUtil.meals.forEach(this::save);
     }
 
+    private void save(Meal meal){
+        repository.put(meal.getId(), meal);
+    }
+
     @Override
-    public Meal save(Meal meal) {
+    public Meal save(Meal meal, int userId) {
+        ValidationUtil.checkCurrentUser(meal, userId);
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
             repository.put(meal.getId(), meal);
@@ -36,20 +43,29 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public boolean delete(int id) {
+    public boolean delete(int id, int userId) {
+        Meal meal = repository.get(id);
+        ValidationUtil.checkCurrentUser(meal, userId);
         return repository.remove(id) != null;
     }
 
     @Override
-    public Meal get(int id) {
-        return repository.get(id);
+    public Meal get(int id, int userId) {
+        Meal meal = repository.get(id);
+        ValidationUtil.checkCurrentUser(meal, userId);
+        return meal;
     }
 
     @Override
-    public Collection<Meal> getAll() {
-        return repository.values().stream()
+    public Collection<Meal> getAll(int userId) {
+        ArrayList<Meal> collect = repository.values().stream()
+                .filter(meal -> meal.getUserId() == userId)
                 .sorted(Comparator.comparing(Meal::getDate).reversed())
                 .collect(Collectors.toCollection(ArrayList::new));
+        if(collect.isEmpty()){
+            throw new NotFoundException("No meals for this user");
+        }
+        return collect;
     }
 }
 

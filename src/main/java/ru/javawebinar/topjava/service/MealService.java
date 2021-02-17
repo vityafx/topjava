@@ -22,33 +22,29 @@ public class MealService {
     }
 
     public Meal get(int id, int userId){
-        Meal meal = repository.get(id);
-        ValidationUtil.checkCurrentUser(meal, userId);
+        Meal meal = repository.get(id, userId);
+        //ValidationUtil.checkCurrentUser(meal, userId);
         return ValidationUtil.checkNotFoundWithId(meal, id);
     }
 
     public Meal create(Meal meal, int userId){
-        ValidationUtil.checkCurrentUser(meal, userId);
-        return repository.save(meal);
+        //ValidationUtil.checkCurrentUser(meal, userId);
+        return repository.save(meal, userId);
     }
 
     public void delete(int id, int userId){
-        Meal meal = repository.get(id);
-        ValidationUtil.checkCurrentUser(meal, userId);
-        ValidationUtil.checkNotFoundWithId(repository.delete(id), id);
+        ValidationUtil.checkNotFoundWithId(repository.delete(id, userId), id);
     }
 
     public Collection<Meal> getAll(int userId){
-        Collection<Meal> collection = repository.getAll();
-        ArrayList<Meal> collect = collection.stream()
-                .filter(meal -> meal.getUserId() == userId)
-                .collect(Collectors.toCollection(ArrayList::new));
-        if(collect.isEmpty()){
-            throw new NotFoundException("No meals for this user");
-        }
-        return collect;
+        return repository.getAll(userId);
+//        ArrayList<Meal> collect = collection.stream()
+//                .filter(meal -> meal.getUserId() == userId)
+//                .collect(Collectors.toCollection(ArrayList::new));
+//        if(collect.isEmpty()){
+//            throw new NotFoundException("No meals for this user");
+//        }
+//        return collect;
     }
-
-
 
 }
