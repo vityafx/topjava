@@ -10,13 +10,11 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-@Transactional (readOnly = true)
+@Transactional(readOnly = true)
 public class JpaMealRepository implements MealRepository {
 
     @PersistenceContext
@@ -26,13 +24,13 @@ public class JpaMealRepository implements MealRepository {
     @Transactional
     public Meal save(Meal meal, int userId) {
         User ref = entityManager.getReference(User.class, userId);
-        if(meal.isNew()){
+        if (meal.isNew()) {
             meal.setUser(ref);
             entityManager.persist(meal);
             return meal;
-        }else {
+        } else {
             Integer mealUserId = entityManager.getReference(Meal.class, meal.id()).getUser().getId();
-            if (mealUserId == null || mealUserId != userId){
+            if (mealUserId == null || mealUserId != userId) {
                 throw new NotFoundException("This food is not yours!");
             }
             meal.setUser(ref);
@@ -44,7 +42,7 @@ public class JpaMealRepository implements MealRepository {
     @Transactional
     public boolean delete(int id, int userId) {
         return entityManager
-                .createQuery("DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:userId")
+                .createNamedQuery(Meal.DELETE)
                 .setParameter("id", id)
                 .setParameter("userId", userId)
                 .executeUpdate() != 0;
@@ -52,26 +50,26 @@ public class JpaMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        Query query = entityManager.createQuery("SELECT m FROM Meal m WHERE m.id=:id AND m.user.id=:userId", Meal.class);
-        query.setParameter("id", id);
-        query.setParameter("userId", userId);
-        List<Meal> meals = query.getResultList();
+        List<Meal> meals = entityManager.createNamedQuery(Meal.BY_ID, Meal.class)
+                .setParameter("id", id)
+                .setParameter("userId", userId)
+                .getResultList();
         return DataAccessUtils.singleResult(meals);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        return new ArrayList<Meal>(entityManager.createQuery("SELECT m FROM Meal m WHERE m.user.id=:userId ORDER BY m.dateTime DESC", Meal.class)
+        return entityManager.createNamedQuery(Meal.ALL, Meal.class)
                 .setParameter("userId", userId)
-                .getResultList());
+                .getResultList();
     }
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        Query query = entityManager.createQuery("SELECT m FROM Meal m WHERE m.user.id=:userId AND m.dateTime >=:startDateTime AND m.dateTime<:endDateTime ORDER BY m.dateTime DESC");
-        query.setParameter("userId", userId);
-        query.setParameter("startDateTime", startDateTime);
-        query.setParameter("endDateTime", endDateTime);
-        return new ArrayList<Meal>(query.getResultList());
+        return entityManager.createNamedQuery(Meal.ALL_Filtered, Meal.class)
+                .setParameter("userId", userId)
+                .setParameter("startDateTime", startDateTime)
+                .setParameter("endDateTime", endDateTime)
+                .getResultList();
     }
 }
