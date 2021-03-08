@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfilesResolver;
 import org.springframework.util.ClassUtils;
@@ -10,7 +11,7 @@ public class Profiles {
             JPA = "jpa",
             DATAJPA = "datajpa";
 
-    public static final String REPOSITORY_IMPLEMENTATION = DATAJPA;
+    public static String REPOSITORY_IMPLEMENTATION = JPA;
 
     public static final String
             POSTGRES_DB = "postgres",
@@ -31,7 +32,7 @@ public class Profiles {
     public static class ActiveDbProfileResolver implements ActiveProfilesResolver {
         @Override
         public @NonNull String[] resolve(@NonNull Class<?> aClass) {
-            return new String[]{getActiveDbProfile()};
+            return new String[]{getActiveDbProfile(), REPOSITORY_IMPLEMENTATION};
         }
     }
 }
